@@ -1,0 +1,52 @@
+<!-- profile.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fill Profile</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="login-container">
+    <h2>Complete Your Profile</h2>
+    <form id="profileForm">
+      <input type="text" id="name" placeholder="Full Name" required />
+      <input type="text" id="email" placeholder="Email Address" required />
+      <input type="text" id="contact" placeholder="Contact Number" required />
+      <input type="text" id="role" disabled />
+      <input type="text" id="userId" disabled />
+      <button type="submit">Save Profile</button>
+    </form>
+  </div>
+
+  <script>
+    const userId = sessionStorage.getItem("userId");
+    const role = sessionStorage.getItem("role");
+
+    if (!userId || !role) {
+      window.location.href = "index.html";
+    }
+
+    document.getElementById("userId").value = userId;
+    document.getElementById("role").value = role;
+
+    document.getElementById("profileForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const contact = document.getElementById("contact").value.trim();
+      const profileData = {
+        name,
+        email,
+        contact,
+        role,
+        userId
+      };
+      sessionStorage.setItem("profileComplete", "true");
+      sessionStorage.setItem("profileData", JSON.stringify(profileData));
+      window.location.href = "dashboard.html";
+    });
+  </script>
+  
+</body>
+</html>

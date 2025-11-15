@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fines</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="dashboard-container">
+    <h2>💰 Book Fines</h2>
+    <ul id="fineList"></ul>
+    <button onclick="goBack()">⬅ Go Back</button>
+  </div>
+
+  <script>
+    function goBack() {
+      window.location.href = 'dashboard.html';
+    }
+
+    const finePerDay = 30; // Rs. 30 per day per book
+    const today = new Date();
+    const books = JSON.parse(localStorage.getItem("issuedBooks")) || [];
+    const fineList = document.getElementById("fineList");
+
+    if (books.length === 0) {
+      fineList.innerHTML = "<li>No issued books found.</li>";
+    } else {
+      let anyFines = false;
+      books.forEach(book => {
+        if (!book.returnDate) {
+          // Book not returned yet
+          const dueDate = new Date(book.dueDate);
+          if (today > dueDate) {
+            const diffTime = today - dueDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const fineAmount = diffDays * finePerDay;
+            anyFines = true;
+            const li = document.createElement("li");
+            li.textContent = `📕 ${book.bookName} is overdue by ${diffDays} day(s). Fine: Rs. ${fineAmount}`;
+            fineList.appendChild(li);
+          }
+        } else {
+          // Book returned, check if returned late
+          const dueDate = new Date(book.dueDate);
+          const returnDate = new Date(book.returnDate);
+          if (returnDate > dueDate) {
+            const diffTime = returnDate - dueDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const fineAmount = diffDays * finePerDay;
+            anyFines = true;
+            const li = document.createElement("li");
+            li.textContent = `📕 ${book.bookName} was returned late by ${diffDays} day(s). Fine: Rs. ${fineAmount}`;
+            fineList.appendChild(li);
+          }
+        }
+      });
+
+      if (!anyFines) {
+        fineList.innerHTML = "<li>No fines to pay. All books are returned on time.</li>";
+      }
+    }
+  </script>
+</body>
+</html>
+

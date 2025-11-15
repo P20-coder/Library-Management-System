@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Issued Books</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="dashboard-container">
+    <h2>📘 Issued Books</h2>
+    <ul id="issuedBookList"></ul>
+    <button onclick="goBack()">⬅ Go Back</button>
+  </div>
+
+  <script>
+    function goBack() {
+      window.location.href = 'dashboard.html';
+    }
+
+    const books = JSON.parse(localStorage.getItem("issuedBooks")) || [];
+    const list = document.getElementById("issuedBookList");
+
+    function saveBooks(updatedBooks) {
+      localStorage.setItem("issuedBooks", JSON.stringify(updatedBooks));
+      location.reload();
+    }
+
+    if (books.length === 0) {
+      list.innerHTML = "<li>No books issued yet.</li>";
+    } else {
+      books.forEach((book, index) => {
+        const li = document.createElement("li");
+        const returnedText = book.returnDate ? `(Returned on ${book.returnDate})` : "(Not returned)";
+        li.textContent = `📕 ${book.bookName} | Issued: ${book.issueDate} | Due: ${book.dueDate} ${returnedText}`;
+
+        if (!book.returnDate) {
+          const returnBtn = document.createElement("button");
+          returnBtn.textContent = "Return Book";
+          returnBtn.style.marginLeft = "10px";
+          returnBtn.onclick = () => {
+            const today = new Date().toISOString().split("T")[0];
+            books[index].returnDate = today;
+            saveBooks(books);
+          };
+          li.appendChild(returnBtn);
+        }
+
+        list.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Library Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="logo">📘 Library Management System</div>
+    <nav class="nav-links">
+      <button onclick="navigateTo('dashboard.html')">🏠 Home</button>
+      <button onclick="navigateTo('Books')">📚 Books</button>
+      <button onclick="navigateTo('Feedback')">🗣 Feedback</button>
+       <button onclick="window.location.href='profile.html'">👤 Profile</button>
+       <button onclick="navigateTo('StudentInfo')">👨‍🎓 Student Info</button>
+       <button onclick="window.location.href='fine.html'">💰 View Fines</button>
+      <button onclick="logout()">🔒 Logout</button>
+    </nav>
+  </header>
+
+  <div class="dashboard-content">
+  <h2>Welcome to CCL Library Dashboard</h2>
+  <p id="welcomeMessage"></p>
+   <p>Features under development...</p>
+</div>
+
+  <section id="booksSection" style="display:none;">
+  <h3>📚 Issue Book</h3>
+<form id="bookForm">
+    <input type="text" id="bookName" placeholder="Enter Book Name" required />
+    <input type="date" id="dueDate" required />
+    <button type="submit">Issue Book</button>
+  </form>
+  <h4>📄 Issued Books</h4>
+  <ul id="issuedBooksList"></ul>
+  </section>
+
+  <section id="feedbackSection" style="display:none; text-align:center; padding: 20px;">
+  <h3>🗣 Feedback</h3>
+  <p>
+    If you want to give feedback, please email us at
+    <a href="mailto:librarymanagement@gmail.com">librarymanagement@gmail.com</a>
+  </p>
+</section>
+
+<section id="studentInfoSection" style="display:none; text-align:center; padding: 20px;">
+  <h3>👨‍🎓 Student Information</h3>
+  <p><strong>Name:</strong> <span id="studentName"></span></p>
+  <p><strong>Roll ID:</strong> <span id="studentRoll"></span></p>
+  <p><strong>Contact:</strong> <span id="studentContact"></span></p>
+</section>
+
+<script>
+  if (!sessionStorage.getItem("isLoggedIn")) {
+  window.location.href = "index.html";
+} else if (!sessionStorage.getItem("profileComplete")) {
+  window.location.href = "profile.html";
+}
+  function logout() {
+  sessionStorage.clear(); // clear all login and profile info
+  window.location.href = "index.html";
+}
+function navigateTo(section) {
+  const role = sessionStorage.getItem("role");
+
+  document.getElementById("booksSection").style.display = "none";
+  document.getElementById("feedbackSection").style.display = "none";
+  document.getElementById("studentInfoSection").style.display = "none";
+
+  if (section === "Books") {
+    if (role === "student" || role === "clerk") {
+      document.getElementById("booksSection").style.display = "block";
+    } else {
+      alert("Access denied: Only students and clerks can access Books.");
+    }
+  } else if (section === "Feedback") {
+    document.getElementById("feedbackSection").style.display = "block";
+} else if (section === "StudentInfo") {
+  const role = sessionStorage.getItem("role");
+
+  if (role === "student" || role === "clerk") {
+    const userId = sessionStorage.getItem("userId");
+    const profile = JSON.parse(localStorage.getItem("profileData_" + userId));
+
+    if (profile) {
+      document.getElementById("studentName").textContent = profile.name;
+      document.getElementById("studentRoll").textContent = profile.userId;
+      document.getElementById("studentContact").textContent = profile.contact;
+      document.getElementById("studentInfoSection").style.display = "block";
+    } else {
+      alert("Profile data not found.");
+    }
+  } else {
+    alert("Access denied: Only students and clerks can view student info.");
+  }
+}
+   else if (section === "AdminPanel") {
+    if (role === "admin") {
+      alert("Admin Panel Access Granted (Under Development).");
+    } else {
+      alert("Access denied: Admin only.");
+    }
+  
+  } else if (section === "Feedback") {
+    document.getElementById("feedbackSection").style.display = "block";
+  } else if (section === "AdminPanel") {
+    if (role === "admin") {
+      alert("Admin Panel Access Granted (Under Development).");
+    } else {
+      alert("Access denied: Admin only.");
+    }
+  }
+}
+  if (!sessionStorage.getItem("isLoggedIn")) {
+    window.location.href = "index.html";
+  }
+  // Handle Book Issue
+  document.getElementById("bookForm")?.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const bookName = document.getElementById("bookName").value;
+    const dueDate = document.getElementById("dueDate").value;
+    const issueDate = new Date().toISOString().split("T")[0];
+
+    const bookEntry = `📘 ${bookName} | Issued: ${issueDate} | Due: ${dueDate}`;
+
+    const listItem = document.createElement("li");
+    listItem.textContent = bookEntry;
+    document.getElementById("issuedBooksList").appendChild(listItem);
+
+    // Reset form
+    document.getElementById("bookForm").reset();
+  });
+  function showEmployeeBooks() {
+  const bookList = JSON.parse(localStorage.getItem("issuedBooks")) || [];
+  const today = new Date();
+  const tbody = document.getElementById("employeeBookList");
+  tbody.innerHTML = "";
+
+  bookList.forEach(book => {
+    const dueDate = new Date(book.dueDate);
+    const timeDiff = today - dueDate;
+    const daysOverdue = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const fine = daysOverdue > 0 ? daysOverdue * 25 : 0;
+
+    const row = `<tr>
+      <td>${book.bookName}</td>
+      <td>${book.dueDate}</td>
+      <td>${daysOverdue > 0 ? daysOverdue : 0}</td>
+      <td>₹${fine}</td>
+    </tr>`;
+    tbody.innerHTML += row;
+  });
+} 
+// Display Welcome Message with Role
+const userId = sessionStorage.getItem("userId");
+const role = sessionStorage.getItem("role");
+if (userId && role) {
+  document.getElementById("welcomeMessage").textContent = `Welcome, ${userId} (${role.charAt(0).toUpperCase() + role.slice(1)})`;
+}
+
+function issueBook(bookName) {
+  const issuedBooks = JSON.parse(localStorage.getItem("issuedBooks")) || [];
+  const today = new Date();
+  const issueDate = today.toISOString().split("T")[0]; // YYYY-MM-DD
+  
+  // Set due date 10 days later
+  const dueDateObj = new Date(today);
+  dueDateObj.setDate(dueDateObj.getDate() + 10);
+  const dueDate = dueDateObj.toISOString().split("T")[0];
+  
+  const newBook = {
+    bookName,
+    issueDate,
+    dueDate,
+    returnDate: null  // initially null (not returned)
+  };
+
+  issuedBooks.push(newBook);
+  localStorage.setItem("issuedBooks", JSON.stringify(issuedBooks));
+  
+  alert(`Book "${bookName}" issued successfully!\nDue date: ${dueDate}`);
+}
+
+// Show Notifications: Overdue Books and Fines
+function loadNotifications() {
+  const books = JSON.parse(localStorage.getItem("issuedBooks")) || [];
+  const today = new Date();
+  const list = document.getElementById("notificationList");
+
+  list.innerHTML = "";
+
+  let hasNotification = false;
+
+  books.forEach(book => {
+    const dueDate = new Date(book.dueDate);
+    const issueDate = new Date(book.issueDate);
+    const timeDiff = today - dueDate;
+    const daysOverdue = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+
+    if (daysOverdue > 0) {
+      hasNotification = true;
+      const fine = daysOverdue * 25;
+      const li = document.createElement("li");
+      li.textContent = `📘 "${book.bookName}" is overdue by ${daysOverdue} day(s). Fine: ₹${fine}`;
+      list.appendChild(li);
+    }
+  });
+
+  if (!hasNotification) {
+    const li = document.createElement("li");
+    li.textContent = "✅ No overdue books or pending fines.";
+    list.appendChild(li);
+  }
+}
+
+window.onload = function () {
+  showUnavailableBooks();
+  loadNotifications();
+};
+
+</script> 
+</body>
+</html>
